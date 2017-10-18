@@ -10,8 +10,9 @@ class Cache_file extends Cache{
 	/**
 	 * Constructor
 	 */
-	public function __construct( $path='' )
+	public function __construct( $config)
 	{            
+            $path=$config['cache_path'];
             if( is_string($path) )
             {
                 $this->_cache_path = ($path == '') ? 'cache/' : $path;                

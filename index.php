@@ -35,36 +35,34 @@ $config=[
 
 class cache_factory{
     /**
-     * holds supported type of cache system
+     * holds supported Cache type
      * 
      * @var type array
      */
-    protected static $cache_type=[ 'auto', 'memcache', 'memcached', 'redis', 'file' ];
+    protected static $cache_type = [ 'auto', 'memcache', 'memcached', 'redis', 'file' ];
     
     /**
      * init class and setting 
      * @param type $config to setting initialized class
      */
-    private function __construct($config) {}
+    private function __construct() {}
     
-    public static function getDriver($config){
-        if ( empty($config) )die( "error:" . "config not provided" );
+    public static function getDriver($type,array $config){
+        if ( empty($type) || empty($config))die( "error:" . "Proper parameter not provided" );
         
-        if( empty($config['type'] )) die("\$config['Type'] is not supplied ");
+        if( ! in_array($type, self::$cache_type ) ) die("Cache type '".$type."' not supported"); 
         
-        $type = $config['type'];
-        if( ! in_array($config['type'], self::$cache_type ) ) die("Cache type '".$type."' not supported"); 
+        $type= strtolower($type);
         
-        unset($config['type']);
         if($type=='auto'){
             if( self::is_redis_support() ) {
-                return new Cache_redis($config['config']);                
+                return new Cache_redis($config);                
             }
             elseif(self::is_memcache_support() || self::is_memcached_support()){
-                return new Cache_memcached($config['config']);                
+                return new Cache_memcached($config);                
             }
             else{
-                return new Cache_file($config['config']);                
+                return new Cache_file($config);                
             }
         }
         elseif( ! self::{'is_'.$type.'_support'}() )
@@ -73,7 +71,7 @@ class cache_factory{
         }
         else {
             $class='Cache_'.$type ;
-            return new $class($config['config']);
+            return new $class($config);
         }
         
     }
@@ -97,6 +95,6 @@ class cache_factory{
 }
 
 #new Cache_redis(['config'=>array()]);
-$cache=cache_factory::getDriver(['type' => 'file','config'=>'./cache']);
+$cache=cache_factory::getDriver('file',['path'=>'./cache']);
 
 
