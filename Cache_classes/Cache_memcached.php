@@ -5,6 +5,21 @@
  */
 class Cache_memcached extends Cache{
 
+        /**
+         * Default host for memcache(d)
+         */
+        const DEFAULT_HOST      = 'localhost';
+        
+        /**
+         * Default port for memcache(d)
+         */
+        const DEFAULT_PORT      = 1337;
+        
+        /**
+         * Default weight for memcache(d)
+         */
+        const DEFAULT_WEIGHT    = 1;
+        
 	/**
 	 * Holds the memcached object
 	 *
@@ -18,12 +33,9 @@ class Cache_memcached extends Cache{
 	 * @var array
 	 */
 	protected $_config = array(
-		'default' => array(
-#			'host'		=> '127.0.0.1',
-			'hostname'		=> 'localhost',
+			'hostname'	=> self::DEFAULT_HOST,
 			'port'		=> 1337,
 			'weight'	=> 1
-		)
 	);
 
 	// ------------------------------------------------------------------------
@@ -32,10 +44,10 @@ class Cache_memcached extends Cache{
 	 * Class constructor
 	 *
 	 * Setup Memcache(d)
-	 *
+	 * @param       array $config ( Optional ) Must have key 'hostname' , 'port' , 'weight'
 	 * @return	void
 	 */
-	public function __construct($config)
+	public function __construct($config=array())
 	{
                 if( ! empty($config) ) $this->_config=$config;
                     
@@ -52,44 +64,45 @@ class Cache_memcached extends Cache{
 			error_log('error'. 'Cache: Failed to create Memcache(d) object; extension not loaded?');
 			return;
 		}
+                    
+                $cache_server = $this->_config;    
+                    
+                if ( ! isset($cache_server['hostname']))
+                {
+                        error_log('debug'. 'Cache: Memcache(d) configuration "'.$cache_name.'" doesn\'t include a hostname; ignoring.');
 
-		foreach ($this->_config as $cache_name => $cache_server)
-		{
-			if ( ! isset($cache_server['hostname']))
-			{
-				error_log('debug'. 'Cache: Memcache(d) configuration "'.$cache_name.'" doesn\'t include a hostname; ignoring.');
-				continue;
-			}
-			elseif ($cache_server['hostname'][0] === '/')
-			{
-				$cache_server['port'] = 0;
-			}
-			elseif (empty($cache_server['port']))
-			{
-				$cache_server['port'] = $defaults['port'];
-			}
+                }
+                elseif ($cache_server['hostname'][0] === '/')
+                {
+                        $cache_server['port'] = 0;
+                }
+                elseif (empty($cache_server['port']))
+                {
+                        $cache_server['port'] = self::DEFAULT_PORT;
+                }
 
-			isset($cache_server['weight']) OR $cache_server['weight'] = $defaults['weight'];
+                isset($cache_server['weight']) OR $cache_server['weight'] = self::DEFAULT_WEIGHT;
 
-			if ($this->_memcached instanceof Memcache)
-			{
-				// Third parameter is persistence and defaults to TRUE.
-				$this->_memcached->addServer(
-					$cache_server['hostname'],
-					$cache_server['port'],
-					TRUE,
-					$cache_server['weight']
-				);
-			}
-			elseif ($this->_memcached instanceof Memcached)
-			{
-				$this->_memcached->addServer(
-					$cache_server['hostname'],
-					$cache_server['port'],
-					$cache_server['weight']
-				);
-			}
-		}
+                if ($this->_memcached instanceof Memcache)
+                {
+                        // Third parameter is persistence and defaults to TRUE.
+                        $this->_memcached->addServer(
+                                $cache_server['hostname'],
+                                $cache_server['port'],
+                                TRUE,
+                                $cache_server['weight']
+                        );
+                }
+                elseif ($this->_memcached instanceof Memcached)
+                {
+                        $this->_memcached->addServer(
+                                $cache_server['hostname'],
+                                $cache_server['port'],
+                                $cache_server['weight']
+                        );
+                }
+                        
+                       
 	}
 
 	// ------------------------------------------------------------------------

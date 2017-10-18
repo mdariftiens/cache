@@ -94,7 +94,5 @@ class cache_factory{
     
 }
 
-#new Cache_redis(['config'=>array()]);
-$cache=cache_factory::getDriver('file',['path'=>'./cache']);
 
-
+$cache=cache_factory::getDriver( 'file', [ 'cache_path' => './cache' ] );
